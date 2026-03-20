@@ -9,7 +9,12 @@ fi
 EXCLUDE=119
 DRY_RUN=true
 
-if [ $DRY_RUN == true ]; then echo "DRY RUN - Updates won't be performed"; fi
+function log() {
+    LEVEL=${2:-Info}
+    echo "[$LEVEL] $1"
+}
+
+if [ $DRY_RUN == true ]; then log "DRY RUN - Updates won't be performed"; fi
 
 # Snippet taken from "sshane" and modified - https://forum.proxmox.com/threads/update-all-lxc-with-one-simple-script.58729/
 
@@ -19,7 +24,7 @@ function update_container() {
   container=$1
   hostname=`pct config $container | grep hostname`
 
-  echo "[Info] Updating #$container - $hostname"
+  log "Updating #$container - $hostname"
   
   if [ $DRY_RUN != true ]; then
     pct exec $container -- bash -c "apt update && apt upgrade -y";
@@ -27,24 +32,26 @@ function update_container() {
 }
 
 function start_container() {
+    container=$1
+    log "Starting #$container";
+
     if [ $DRY_RUN==true ]; then 
-        echo "[Info] Starting container $container";
         return 0;
     fi
-    container=$1
-    echo [Info] Starting $container
+
     pct start $container
-    echo [Info] Sleeping 5 seconds
+    log "Sleeping for 5s"
     sleep 5
 }
 
 function shutdown_container() {
+    container=$1
+    log "Shutting down #$container";
+
     if [ $DRY_RUN==true ]; then 
-        echo "[Info] Shutting down container $container";
         return 0;
     fi
-    container=$1
-    echo [Info] Shutting down $container
+
     pct shutdown $container &
 }
 
@@ -65,8 +72,8 @@ do
   status=$?
 
   if [ $status -eq 1 ]; then 
-    echo [Info] Excluding $container;
-    sleep 2
+    log "Excluding $container";
+    sleep 2;
     continue
   fi
 
