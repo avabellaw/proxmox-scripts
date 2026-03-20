@@ -21,8 +21,8 @@ if [ $DRY_RUN == true ]; then log "DRY RUN - Updates won't be performed"; fi
 containers=$(pct list | tail -n +2 | cut -f1 -d' ')
 
 function update_container() {
-  container=$1
-  hostname=`pct config $container | grep hostname`
+  local container=$1
+  local hostname=`pct config $container | grep hostname`
 
   log "Updating #$container - $hostname"
   
@@ -32,7 +32,7 @@ function update_container() {
 }
 
 function start_container() {
-    container=$1
+    local container=$1
     log "Starting #$container";
 
     if [ $DRY_RUN==true ]; then 
@@ -45,7 +45,7 @@ function start_container() {
 }
 
 function shutdown_container() {
-    container=$1
+    local container=$1
     log "Shutting down #$container";
 
     if [ $DRY_RUN==true ]; then 
@@ -56,7 +56,7 @@ function shutdown_container() {
 }
 
 function is_excluded() {
-    IFS=','
+    local IFS=','
     for x in $EXCLUDE; do
         if [[ x -eq $1 ]]; then 
             return 1
@@ -69,9 +69,8 @@ function is_excluded() {
 for container in $containers
 do
   is_excluded $container
-  status=$?
 
-  if [ $status -eq 1 ]; then 
+  if [ $? -eq 1 ]; then 
     log "Excluding $container";
     sleep 2;
     continue
