@@ -23,6 +23,11 @@ function update_container() {
   fi
 }
 
+# Function to be used to check most current status - currently not used as it takes time to check this
+function is_container_running() {
+    if [[ `pct status $curr_container_id` == "status: running" ]]; then return 0; else return 1; fi # 0=true | 1=false - exit status
+}
+
 function start_container() {
     log "Starting $curr_container_str";
 
@@ -60,7 +65,7 @@ if [ $DRY_RUN == true ]; then log "DRY RUN - Updates won't be performed"; fi
 
 containers=$(pct list | tail -n +2)
 
-while IFS=$' ' read -r id _ hostname; do
+while IFS=$' ' read -r id status hostname; do
   curr_container_id=$id;
   curr_container_hostname=$hostname;
   curr_container_str="\t#$curr_container_id\t $curr_container_hostname"
@@ -72,13 +77,13 @@ while IFS=$' ' read -r id _ hostname; do
     continue
   fi
 
-  status=`pct status $curr_container_id`
-  if [[ "$status" == "status: stopped" && ("$REACH"=="all" || "$REACH"=="stopped") ]]; then
+  if [[ "$status" == "stopped" && ("$REACH"=="all" || "$REACH"=="stopped") ]]; then
     start_container
     update_container
     shutdown_container
-  elif [[ "$status" == "status: running" && ("$REACH"=="all" || "$REACH"=="running") ]]; then
+  elif [[ "$status" == "running" && ("$REACH"=="all" || "$REACH"=="running") ]]; then
     update_container
   fi
+  sleep 0.5
 done <<< $containers
 wait
