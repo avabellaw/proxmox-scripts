@@ -28,15 +28,27 @@ function is_container_running() {
 }
 
 function start_container() {
-    log "Starting $curr_container_str";
+    log "Starting...";
 
     if [ $DRY_RUN==true ]; then 
         return 0;
     fi
 
-    pct start $curr_container_id
-    log "Sleeping for 5s"
-    sleep 5
+    pct start $curr_container_id;
+
+    TIMEOUT=300; # seconds
+    TIME_PASSED=0;
+    SLEEP_FOR=2 # seconds
+
+    while ! is_container_running; do
+        sleep $SLEEP_FOR;
+        TIME_PASSED+=$SLEEP_FOR
+        if [ $TIME_PASSED >= TIMEOUT ]; then break; fi
+
+        log "Waiting for #$curr_container_id to start...";
+    done
+
+    return $(is_container_running)
 }
 
 function shutdown_container() {
@@ -77,12 +89,14 @@ while IFS=$' ' read -r id status hostname; do
   fi
 
   if ! is_container_running && [[ ("$REACH"=="all" || "$REACH"=="stopped") ]]; then
-    start_container
-    update_container
-    shutdown_container
+    if start_container; then log "Started";
+        update_container;
+        shutdown_container;
+    else
+        log "Start FAILED";
+    fi
   elif is_container_running && [[ ("$REACH"=="all" || "$REACH"=="running") ]]; then
     update_container
   fi
-  sleep 0.5
 done <<< $containers
 wait
