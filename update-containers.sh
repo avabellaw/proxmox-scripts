@@ -74,6 +74,7 @@ function is_excluded() {
 
 if [ $DRY_RUN == true ]; then log "DRY RUN - Updates won't be performed"; fi
 
+log "Getting container list..."
 containers=$(pct list | tail -n +2)
 
 while IFS=$' ' read -r id status hostname; do
