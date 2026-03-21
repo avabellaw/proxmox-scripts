@@ -18,3 +18,10 @@ update-containers.sh [options]
   - **all**:        Update all containers, start containers to update then shutdown
   - **running**:    Update only running containers
   - **stopped**:    Update only stopped containers
+
+## Considerations
+
+- Proxmox ```pct``` over raw ```lxc``` for container management/info
+  - To respect Proxmox setup. Ensure reliability.
+  - Performance hit is negligable - longest wait time is ```pct list`` at beginning of script.  
+  - **Contradiction** for checking the status of containers, I use lxc-info for it's superior speed as it is only checking status and is done for every container.
